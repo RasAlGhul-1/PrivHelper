@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PrivHelper Web</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="container">
+    <!-- 顶部栏：一行布局 -->
+    <header class="header">
+        <div class="header-left">
+            <h1>PrivHelper</h1>
+        </div>
+        <div class="header-middle">
+            <!-- 新增：版本号 + 作者 -->
+            <div class="info-item">
+                <span class="info-label">版本/作者：</span>
+                <span class="info-value">v1.0.0 / Ra's Al Ghul</span>
+            </div>
+            <!-- 原有信息 -->
+            <div class="info-item">
+                <span class="info-label">Web面板：</span>
+                <span id="web-url" class="info-value">http://{{config.BAD_IP}}:{{config.WEB_PORT}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">默认BADIP：</span>
+                <span class="info-value">{{config.BAD_IP}}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">HTTP端口：</span>
+                <span class="info-value">{{config.HTTP_SERVER_PORT}}</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="ip-panel">
+                <label class="ip-label">自定义BADIP：</label>
+                <input type="text" id="server-ip" value="{{config.BAD_IP}}" class="ip-input">
+                <button onclick="updateIP()" class="ip-btn">更新</button>
+                <p class="tip">💡 点击命令即可复制</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="tool-scroll">
+        <div class="cols">
+            <div class="col">
+                <h2>🪟 Windows</h2>
+                <div id="windows-tools" class="file-tree"></div>
+            </div>
+            <div class="col">
+                <h2>🐧 Linux</h2>
+                <div id="linux-tools" class="file-tree"></div>
+            </div>
+            <div class="col">
+                <h2>📁 其他</h2>
+                <div id="other-tools" class="file-tree"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="log-box">
+        <div class="log-head">
+            <h2>📝 HTTP 访问日志</h2>
+            <button onclick="refreshLogs()">刷新</button>
+        </div>
+        <div id="http-logs" class="log-content"></div>
+    </div>
+</div>
+
+<script src="/static/js/main.js"></script>
+<script>
+    const CONFIG = {
+        badIp: "{{config.BAD_IP}}",
+        httpPort: "{{config.HTTP_SERVER_PORT}}",
+        webPort: "{{config.WEB_PORT}}"
+    };
+    let currentBadIp = CONFIG.badIp;
+
+    // 初始化：读取本地存储的BADIP
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedBadIp = localStorage.getItem("privhelper_badip");
+        if (savedBadIp) {
+            currentBadIp = savedBadIp;
+            document.getElementById("server-ip").value = savedBadIp;
+        }
+        updateIP();
+        loadAll();
+        setInterval(loadLogs, 5000);
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,413 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Microsoft YaHei", "Arial", sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.container {
+    width: 98%;
+    margin: 0 auto;
+    padding: 5px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 顶部栏样式 */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #2c3e50;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    height: 60px;
+}
+
+.header-left h1 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #3498db;
+    margin: 0;
+}
+
+/* 中间信息区 */
+.header-middle {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    gap: 15px; /* 从20px改为15px，适配新增的版本/作者 */
+    align-items: center;
+}
+/* 自定义版本/作者样式（可选） */
+.info-item:first-child .info-value {
+    color: #3498db; /* 改为和标题同色的蓝色 */
+    font-weight: 600; /* 加粗 */
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.info-label {
+    color: #bdc3c7;
+}
+
+.info-value {
+    color: #fff;
+    font-weight: 500;
+}
+
+.header-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ip-panel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ip-label {
+    font-size: 0.9rem;
+    color: #bdc3c7;
+}
+
+.ip-input {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    width: 130px;
+    outline: none;
+    font-size: 0.85rem;
+}
+
+.ip-btn {
+    padding: 4px 10px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s;
+}
+
+.ip-btn:hover {
+    background-color: #2980b9;
+}
+
+.tip {
+    font-size: 0.75rem;
+    color: #bdc3c7;
+    margin: 0;
+}
+
+/* 工具区域样式 */
+.tool-scroll {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 8px;
+    max-height: calc(100vh - 60px - 180px - 20px);
+    overflow-y: auto;
+    flex: 0 1 auto;
+}
+
+/* 工具列布局 - 新增分割线+边框 */
+.cols {
+    display: flex;
+    gap: 15px; /* 列间距保留，增强分割感 */
+    flex-wrap: wrap;
+}
+.col {
+    flex: 1;
+    min-width: 280px;
+    /* 新增：独立边框 */
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 10px; /* 内部间距，避免内容贴边框 */
+    background-color: #fff; /* 独立背景，增强区分 */
+    /* 新增：右侧分割线（最后一列不加） */
+    position: relative;
+}
+/* 给前两列添加右侧垂直分割线（Windows/Linux列右侧） */
+.col:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: -8px; /* 居中于列间距（15px），-8px = -15px/2 + 0.5px */
+    top: 20px;
+    bottom: 20px;
+    width: 1px;
+    background-color: #e0e0e0; /* 浅灰色分割线，不刺眼 */
+}
+/* 列标题样式微调（适配边框） */
+.col h2 {
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+    border-bottom: 2px solid #3498db;
+    padding-bottom: 4px;
+    /* 新增：标题和边框间距 */
+    margin-left: 5px;
+    margin-right: 5px;
+}
+
+/* 文件夹树核心样式 */
+.file-tree {
+    font-size: 0.9rem;
+}
+
+/* 目录节点 */
+.dir-node {
+    margin: 2px 0;
+    cursor: pointer;
+}
+
+.dir-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #f0f5f9;
+    transition: background-color 0.2s;
+}
+
+.dir-header:hover {
+    background-color: #e1ebf5;
+}
+
+.dir-arrow {
+    color: #3498db;
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+    display: inline-block;
+    width: 12px;
+}
+
+.dir-expanded .dir-arrow {
+    transform: rotate(90deg);
+}
+
+.dir-name {
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+/* 目录子节点（默认隐藏） */
+.dir-children {
+    display: none;
+    margin-left: 20px;
+    padding-left: 8px;
+    border-left: 1px dashed #e0e0e0;
+}
+
+.dir-expanded .dir-children {
+    display: block;
+}
+
+/* 文件节点 */
+.file-node {
+    margin: 2px 0;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.file-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+.file-name {
+    color: #2c3e50;
+    font-weight: 500;
+    margin-bottom: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-desc {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    margin-bottom: 4px;
+}
+
+.file-comment-toggle {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border: 1px solid #cfd8dc;
+    border-radius: 999px;
+    background: #fff;
+    color: #607d8b;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.file-comment-toggle:hover {
+    background: #f4f6f7;
+}
+
+/* 命令样式 */
+.cmd {
+    background-color: #000;
+    color: #00ff66;
+    padding: 5px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.85rem;
+    border: 1px solid #00aa44;
+    transition: background-color 0.2s;
+}
+
+.cmd.download-link {
+    color: #3498db;
+    border-color: #3498db;
+}
+
+.cmd.download-link:hover {
+    background-color: #001a33;
+}
+
+.cmd:hover {
+    background-color: #001a00;
+}
+
+.comment-block {
+    background-color: #111;
+    color: #cfd8dc;
+    padding: 6px 8px;
+    border-radius: 4px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.8rem;
+    white-space: pre-wrap;
+    border: 1px solid #263238;
+    display: none;
+}
+
+.file-node.show-comments .comment-block {
+    display: block;
+}
+
+/* 日志区域样式 */
+.log-box {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: fixed;
+    bottom: 5px;
+    left: 1%;
+    right: 1%;
+    height: 180px;
+    overflow: hidden;
+}
+
+.log-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.log-head h2 {
+    color: #2c3e50;
+    font-size: 1.1rem;
+}
+
+.log-head button {
+    padding: 4px 10px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.log-content {
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-radius: 6px;
+    height: calc(100% - 35px);
+    font-family: "Consolas", "Monaco", monospace;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+    overflow-y: auto;
+}
+
+/* 日志状态码样式 */
+.log-line {
+    position: relative;
+    padding-left: 40px;
+    margin: 1px 0;
+    line-height: 1.3;
+}
+
+.log-status-200::before {
+    content: "200";
+    color: #2ecc71;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    font-size: 0.85rem;
+}
+
+.log-status-other::before {
+    content: attr(data-status);
+    color: #e74c3c;
+    font-weight: bold;
+    position: absolute;
+    left: 0;
+    font-size: 0.85rem;
+}
+
+/* 滚动条美化 */
+.tool-scroll::-webkit-scrollbar, .log-content::-webkit-scrollbar {
+    width: 5px;
+}
+
+.tool-scroll::-webkit-scrollbar-track, .log-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.tool-scroll::-webkit-scrollbar-thumb, .log-content::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.tool-scroll::-webkit-scrollbar-thumb:hover, .log-content::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}

