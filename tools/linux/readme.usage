@@ -1,0 +1,8 @@
+>01 获取root key
+cat /root/proof.txt
+###
+说明：
+- 这是目录级 readme.usage 示例，不绑定具体文件，适合记录无需下载工具的常用命令
+- 支持变量：$badip、$callback_ip、$callback_port
+- 若未手动设置回连参数，$callback_ip 默认等于 $badip；手动设置后两者互不影响
+###

@@ -6,6 +6,13 @@ let config = {
     HTTP_PORT: 8080
 };
 
+function escapeHtml(text) {
+    return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
+
 /**
  * 更新BADIP（核心：同步HTTP端口）
  */
@@ -18,12 +25,44 @@ function updateIP() {
     // 1. 读取页面上显示的HTTP端口（实时值，兼容手动指定的-p参数）
     const httpPortEl = document.querySelector('.header-middle .info-item:last-child .info-value');
     const httpPort = httpPortEl ? httpPortEl.innerText : CONFIG.httpPort || 8080;
-    // 2. 读取Web端口
-    const webPort = window.CONFIG?.webPort || config.WEB_PORT;
-    
-    // 更新Web面板地址
-    document.getElementById("web-url").innerText = `http://${currentBadIp}:${webPort}`;
+
+    const savedCallbackIp = localStorage.getItem("privhelper_callback_ip");
+    if (!savedCallbackIp) {
+        window.currentCallbackIp = currentBadIp;
+        const cipEl = document.getElementById("callback-ip");
+        if (cipEl) cipEl.value = currentBadIp;
+    }
     // 重新加载工具（传递最新HTTP端口）
+    loadTools(httpPort);
+}
+
+/**
+ * 更新回连参数（callback_ip / callback_port）
+ * 默认：callback_ip 使用当前 BADIP（仅在用户未设置时）
+ */
+function updateCallback() {
+    const ipInput = document.getElementById("callback-ip");
+    const portInput = document.getElementById("callback-port");
+    const httpPortEl = document.querySelector('.header-middle .info-item:last-child .info-value');
+    const httpPort = httpPortEl ? httpPortEl.innerText : CONFIG.httpPort || 8080;
+
+    let cip = ipInput ? ipInput.value.trim() : "";
+    let cport = portInput ? portInput.value.trim() : "";
+
+    if (!cip) {
+        cip = typeof currentBadIp === "string" && currentBadIp ? currentBadIp : "127.0.0.1";
+        if (ipInput) ipInput.value = cip;
+    }
+    if (!cport || isNaN(Number(cport))) {
+        cport = "4444";
+        if (portInput) portInput.value = cport;
+    }
+
+    window.currentCallbackIp = cip;
+    window.currentCallbackPort = cport;
+    localStorage.setItem("privhelper_callback_ip", cip);
+    localStorage.setItem("privhelper_callback_port", cport);
+
     loadTools(httpPort);
 }
 
@@ -34,6 +73,15 @@ async function loadAll() {
     // 初始化时读取页面上的HTTP端口
     const httpPortEl = document.querySelector('.header-middle .info-item:last-child .info-value');
     const initHttpPort = httpPortEl ? httpPortEl.innerText : CONFIG.httpPort || 8080;
+    // 初始化 callback_ip / callback_port：优先本地存储，否则默认 = BADIP / 4444
+    const savedCallbackIp = localStorage.getItem("privhelper_callback_ip");
+    const savedCallbackPort = localStorage.getItem("privhelper_callback_port");
+    window.currentCallbackIp = savedCallbackIp || (typeof currentBadIp === "string" && currentBadIp ? currentBadIp : "127.0.0.1");
+    window.currentCallbackPort = savedCallbackPort || "4444";
+    const cipEl = document.getElementById("callback-ip");
+    const cportEl = document.getElementById("callback-port");
+    if (cipEl && !cipEl.value) cipEl.value = window.currentCallbackIp;
+    if (cportEl && !cportEl.value) cportEl.value = window.currentCallbackPort;
     loadTools(initHttpPort);
     loadLogs();
 }
@@ -62,14 +110,154 @@ function getDirExpandedState(category, path) {
     return localStorage.getItem(dirId) === "1";
 }
 
+function getReadmeUniqueId(category, path) {
+    if (!path) return `readme_${category}_root`;
+    return `readme_${category}_${path.replace(/\//g, "_")}`;
+}
+
+function saveReadmeExpandedState(category, path, isExpanded) {
+    const id = getReadmeUniqueId(category, path);
+    localStorage.setItem(id, isExpanded ? "1" : "0");
+}
+
+function getReadmeExpandedState(category, path) {
+    const id = getReadmeUniqueId(category, path);
+    const v = localStorage.getItem(id);
+    if (v === null) return true;
+    return v === "1";
+}
+
+function getFileUniqueId(category, fullPath) {
+    if (!fullPath) return `file_${category}_unknown`;
+    return `file_${category}_${fullPath.replace(/\//g, "_")}`;
+}
+
+function saveFileExpandedState(category, fullPath, isExpanded) {
+    const id = getFileUniqueId(category, fullPath);
+    localStorage.setItem(id, isExpanded ? "1" : "0");
+}
+
+function getFileExpandedState(category, fullPath) {
+    const id = getFileUniqueId(category, fullPath);
+    const v = localStorage.getItem(id);
+    if (v === null) return false;
+    return v === "1";
+}
+
 /**
  * 递归渲染文件夹树（接收最新HTTP端口）
  */
 function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
     if (!node) return;
 
-    const currentPath = parentPath 
-        ? `${parentPath}/${node.__name__}` 
+    if (node.__type__ === "readme") {
+        const dirPath = parentPath || "";
+        const isExpanded = getReadmeExpandedState(category, dirPath);
+
+        const readmeEl = document.createElement("div");
+        readmeEl.className = `readme-node file-node${isExpanded ? "" : " readme-collapsed"}`;
+
+        const headerEl = document.createElement("div");
+        headerEl.className = "readme-header";
+
+        const titleEl = document.createElement("div");
+        titleEl.className = "readme-title";
+        titleEl.textContent = node.__name__ || "README";
+
+        const toggleEl = document.createElement("button");
+        toggleEl.className = "readme-toggle";
+        toggleEl.textContent = isExpanded ? "收起" : "展开";
+
+        headerEl.appendChild(titleEl);
+        headerEl.appendChild(toggleEl);
+
+        const bodyEl = document.createElement("div");
+        bodyEl.className = "readme-body";
+
+        const badUrlBase = `http://${currentBadIp || "127.0.0.1"}:${httpPort || 8080}`;
+        const callbackIp = window.currentCallbackIp || currentBadIp || "127.0.0.1";
+        const callbackPort = window.currentCallbackPort || "4444";
+        const toolDir = node.abs_dir || "";
+        const toolFile = "";
+
+        const usageItems = Array.isArray(node.usage_items) ? node.usage_items : [];
+        let cmdHtml = "";
+        let commentCount = 0;
+        let commentHtml = "";
+
+        usageItems.forEach(item => {
+            if (!item) return;
+            if (item.type === "cmd" && item.text) {
+                let replacedCmd = String(item.text).replace(/\$badurl/g, badUrlBase);
+                replacedCmd = replacedCmd.replace(/\$toolpath/g, toolDir);
+                replacedCmd = replacedCmd.replace(/\$toolfile/g, toolFile);
+                replacedCmd = replacedCmd.replace(/\$callback_ip/g, callbackIp);
+                replacedCmd = replacedCmd.replace(/\$callback_port/g, callbackPort);
+                replacedCmd = replacedCmd.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                if (item.hint) {
+                    let hintText = String(item.hint).replace(/\$badurl/g, badUrlBase);
+                    hintText = hintText.replace(/\$toolpath/g, toolDir);
+                    hintText = hintText.replace(/\$toolfile/g, toolFile);
+                    hintText = hintText.replace(/\$callback_ip/g, callbackIp);
+                    hintText = hintText.replace(/\$callback_port/g, callbackPort);
+                    hintText = hintText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                    cmdHtml += `<div class='cmd-hint'>${escapeHtml(hintText)}</div>`;
+                }
+                cmdHtml += `<div class='cmd' onclick='copy(this)'>${replacedCmd}</div>`;
+                return;
+            }
+
+            if (item.type === "comment_block" && item.text) {
+                let commentText = String(item.text);
+                commentText = commentText.replace(/\$badurl/g, badUrlBase);
+                commentText = commentText.replace(/\$toolpath/g, toolDir);
+                commentText = commentText.replace(/\$toolfile/g, toolFile);
+                commentText = commentText.replace(/\$callback_ip/g, callbackIp);
+                commentText = commentText.replace(/\$callback_port/g, callbackPort);
+                commentText = commentText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                const safeText = commentText
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+                commentCount += 1;
+                commentHtml += `<div class='comment-block' onclick='copy(this)'>${safeText}</div>`;
+            }
+        });
+
+        const readmeTitle = node.desc ? `<div class="file-desc">${node.desc}</div>` : "";
+        const commentToggle = commentCount > 0
+            ? `<button class="file-comment-toggle" onclick="toggleComments(this)">注释(${commentCount})</button>`
+            : "";
+
+        bodyEl.innerHTML = `
+            <div class="file-title">
+                <div class="file-name">readme.usage</div>
+                ${commentToggle}
+            </div>
+            ${readmeTitle}
+            ${cmdHtml}
+            ${commentHtml}
+        `;
+
+        const setExpanded = (expanded) => {
+            readmeEl.classList.toggle("readme-collapsed", !expanded);
+            toggleEl.textContent = expanded ? "收起" : "展开";
+            saveReadmeExpandedState(category, dirPath, expanded);
+        };
+
+        headerEl.addEventListener("click", () => {
+            const expanded = readmeEl.classList.contains("readme-collapsed");
+            setExpanded(expanded);
+        });
+
+        readmeEl.appendChild(headerEl);
+        readmeEl.appendChild(bodyEl);
+        parentEl.appendChild(readmeEl);
+        return;
+    }
+
+    const currentPath = parentPath
+        ? `${parentPath}/${node.__name__}`
         : node.__name__ || "";
     
     if (node.__type__ === "dir") {
@@ -102,7 +290,12 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
         });
         
         if (node.__children__ && Object.keys(node.__children__).length > 0) {
-            Object.values(node.__children__).forEach(child => {
+            const children = Object.values(node.__children__).sort((a, b) => {
+                const aw = a && a.__type__ === "readme" ? 0 : 1;
+                const bw = b && b.__type__ === "readme" ? 0 : 1;
+                return aw - bw;
+            });
+            children.forEach(child => {
                 renderTreeNode(child, dirChildren, category, currentPath, httpPort);
             });
         }
@@ -119,6 +312,12 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
         const badUrlBase = `http://${currentBadIp || "127.0.0.1"}:${httpPort || 8080}`;
         const downloadUrl = `${badUrlBase}/${node.full_path}`;
         const badFile = node.__name__ || "";
+        const toolDir = node.abs_dir || "";
+        const toolFile = node.abs_path || "";
+        const callbackIp = window.currentCallbackIp || currentBadIp || "127.0.0.1";
+        const callbackPort = window.currentCallbackPort || "4444";
+        const isExpanded = getFileExpandedState(category, node.full_path);
+        fileEl.classList.toggle("file-collapsed", !isExpanded);
         
         let cmdHtml = `<div class='cmd download-link' onclick='copy(this)'>${downloadUrl}</div>`;
         const usageItems = Array.isArray(node.usage_items)
@@ -136,6 +335,10 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 replacedCmd = replacedCmd.replace(/\$downloadurl/g, downloadUrl);
                 replacedCmd = replacedCmd.replace(/\$badfile/g, badFile);
                 replacedCmd = replacedCmd.replace(/\$file/g, badFile);
+                replacedCmd = replacedCmd.replace(/\$toolpath/g, toolDir);
+                replacedCmd = replacedCmd.replace(/\$toolfile/g, toolFile);
+                replacedCmd = replacedCmd.replace(/\$callback_ip/g, callbackIp);
+                replacedCmd = replacedCmd.replace(/\$callback_port/g, callbackPort);
                 replacedCmd = replacedCmd.replace(/\$badip/g, currentBadIp || "127.0.0.1");
                 cmdHtml += `<div class='cmd' onclick='copy(this)'>${replacedCmd}</div>`;
                 return;
@@ -146,7 +349,23 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 replacedCmd = replacedCmd.replace(/\$downloadurl/g, downloadUrl);
                 replacedCmd = replacedCmd.replace(/\$badfile/g, badFile);
                 replacedCmd = replacedCmd.replace(/\$file/g, badFile);
+                replacedCmd = replacedCmd.replace(/\$toolpath/g, toolDir);
+                replacedCmd = replacedCmd.replace(/\$toolfile/g, toolFile);
+                replacedCmd = replacedCmd.replace(/\$callback_ip/g, callbackIp);
+                replacedCmd = replacedCmd.replace(/\$callback_port/g, callbackPort);
                 replacedCmd = replacedCmd.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                if (item.hint) {
+                    let hintText = String(item.hint).replace(/\$badurl/g, badUrlBase);
+                    hintText = hintText.replace(/\$downloadurl/g, downloadUrl);
+                    hintText = hintText.replace(/\$badfile/g, badFile);
+                    hintText = hintText.replace(/\$file/g, badFile);
+                    hintText = hintText.replace(/\$toolpath/g, toolDir);
+                    hintText = hintText.replace(/\$toolfile/g, toolFile);
+                    hintText = hintText.replace(/\$callback_ip/g, callbackIp);
+                    hintText = hintText.replace(/\$callback_port/g, callbackPort);
+                    hintText = hintText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                    cmdHtml += `<div class='cmd-hint'>${escapeHtml(hintText)}</div>`;
+                }
                 cmdHtml += `<div class='cmd' onclick='copy(this)'>${replacedCmd}</div>`;
                 return;
             }
@@ -157,6 +376,10 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 commentText = commentText.replace(/\$downloadurl/g, downloadUrl);
                 commentText = commentText.replace(/\$badfile/g, badFile);
                 commentText = commentText.replace(/\$file/g, badFile);
+                commentText = commentText.replace(/\$toolpath/g, toolDir);
+                commentText = commentText.replace(/\$toolfile/g, toolFile);
+                commentText = commentText.replace(/\$callback_ip/g, callbackIp);
+                commentText = commentText.replace(/\$callback_port/g, callbackPort);
                 commentText = commentText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
                 const safeText = commentText
                     .replace(/&/g, "&amp;")
@@ -173,13 +396,29 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
             : "";
         
         fileEl.innerHTML = `
-            <div class="file-title">
-                <div class="file-name">${node.__name__ || "未知文件"}</div>
-                ${toggleHtml}
+            <div class="file-header">
+                <div class="file-header-left">
+                    <span class="file-arrow">▶</span>
+                    <div class="file-name">${node.__name__ || "未知文件"}</div>
+                </div>
+                <div class="file-header-right">${toggleHtml}</div>
             </div>
-            <div class="file-desc">${node.desc || "无描述"}</div>
-            ${cmdHtml}
+            <div class="file-body">
+                <div class="file-desc">${node.desc || "无描述"}</div>
+                ${cmdHtml}
+            </div>
         `;
+
+        const headerEl = fileEl.querySelector(".file-header");
+        if (headerEl) {
+            headerEl.addEventListener("click", (e) => {
+                const target = e.target;
+                if (target && target.closest && target.closest(".file-comment-toggle")) return;
+                const expandedNow = fileEl.classList.contains("file-collapsed");
+                fileEl.classList.toggle("file-collapsed", !expandedNow);
+                saveFileExpandedState(category, node.full_path, expandedNow);
+            });
+        }
         
         parentEl.appendChild(fileEl);
     }
@@ -210,22 +449,31 @@ async function loadTools(httpPort) {
         if (windowsTree) windowsTree.innerHTML = "";
         if (linuxTree) linuxTree.innerHTML = "";
         if (otherTree) otherTree.innerHTML = "";
-        
+
+        const weight = (n) => {
+            if (!n || !n.__type__) return 9;
+            if (n.__type__ === "readme") return 0;
+            if (n.__type__ === "dir") return 1;
+            if (n.__type__ === "file") return 2;
+            return 9;
+        };
+        const renderRootChildren = (catNode, container, category) => {
+            const arr = Object.values(catNode.__children__ || {});
+            arr.sort((a, b) => weight(a) - weight(b));
+            arr.forEach(child => {
+                renderTreeNode(child, container, category, "", httpPort);
+            });
+        };
+
         // 传递最新HTTP端口到渲染函数
         if (toolData.windows?.__children__) {
-            Object.values(toolData.windows.__children__).forEach(child => {
-                renderTreeNode(child, windowsTree, "windows", "", httpPort);
-            });
+            renderRootChildren(toolData.windows, windowsTree, "windows");
         }
         if (toolData.linux?.__children__) {
-            Object.values(toolData.linux.__children__).forEach(child => {
-                renderTreeNode(child, linuxTree, "linux", "", httpPort);
-            });
+            renderRootChildren(toolData.linux, linuxTree, "linux");
         }
         if (toolData.other?.__children__) {
-            Object.values(toolData.other.__children__).forEach(child => {
-                renderTreeNode(child, otherTree, "other", "", httpPort);
-            });
+            renderRootChildren(toolData.other, otherTree, "other");
         }
 
     } catch (e) {

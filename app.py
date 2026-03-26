@@ -51,6 +51,63 @@ def find_available_port(start_port, host="0.0.0.0"):
                 port += 1
     return start_port
 
+def parse_usage_file(file_path):
+    desc = ""
+    usage_items = []
+    try:
+        with open(file_path, encoding="utf-8") as uf:
+            raw_lines = [l.rstrip("\n").rstrip("\r") for l in uf]
+            first_content_index = None
+            for i, l in enumerate(raw_lines):
+                if l.strip():
+                    first_content_index = i
+                    break
+
+            if first_content_index is not None:
+                desc = raw_lines[first_content_index].strip()
+                remaining_lines = raw_lines[first_content_index + 1:]
+            else:
+                remaining_lines = []
+
+            in_block = False
+            block_lines = []
+            pending_hint = None
+            for l in remaining_lines:
+                if not in_block:
+                    if not l.strip():
+                        continue
+                    stripped = l.strip()
+                    if stripped.startswith(">"):
+                        hint = stripped[1:].lstrip()
+                        pending_hint = hint if hint else None
+                        continue
+                    if l.lstrip().startswith("###"):
+                        pending_hint = None
+                        in_block = True
+                        block_lines = []
+                        continue
+                    if l.lstrip().startswith("#"):
+                        continue
+                    if pending_hint:
+                        usage_items.append({"type": "cmd", "text": l.strip(), "hint": pending_hint})
+                        pending_hint = None
+                    else:
+                        usage_items.append({"type": "cmd", "text": l.strip()})
+                else:
+                    if l.lstrip().startswith("###"):
+                        in_block = False
+                        usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
+                        block_lines = []
+                        continue
+                    block_lines.append(l)
+
+            if in_block:
+                usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
+    except:
+        desc = "读取描述失败"
+        usage_items = []
+    return desc, usage_items
+
 # ===================== 配置 =====================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TOOLS_DIR = os.path.join(BASE_DIR, "tools")
@@ -135,6 +192,21 @@ def build_tool_tree():
                 }
             current_node = current_node[part]["__children__"]
 
+        readme_usage_path = os.path.join(root, "readme.usage")
+        if not os.path.exists(readme_usage_path):
+            readme_usage_path = os.path.join(root, "README.usage")
+
+        if os.path.exists(readme_usage_path):
+            desc, usage_items = parse_usage_file(readme_usage_path)
+            current_node["__readme__"] = {
+                "__type__": "readme",
+                "__name__": "README",
+                "desc": desc,
+                "usage_items": usage_items,
+                "dir_path": rel_path.replace("\\", "/"),
+                "abs_dir": os.path.abspath(root).replace("\\", "/")
+            }
+
         # 添加文件到当前目录节点
         for file in files:
             # 读取.usage文件
@@ -142,46 +214,7 @@ def build_tool_tree():
             desc = ""
             usage_items = []
             if os.path.exists(usage_path):
-                try:
-                    with open(usage_path, encoding="utf-8") as uf:
-                        raw_lines = [l.rstrip("\n").rstrip("\r") for l in uf]
-                        first_content_index = None
-                        for i, l in enumerate(raw_lines):
-                            if l.strip():
-                                first_content_index = i
-                                break
-
-                        if first_content_index is not None:
-                            desc = raw_lines[first_content_index].strip()
-                            remaining_lines = raw_lines[first_content_index + 1:]
-                        else:
-                            remaining_lines = []
-
-                        in_block = False
-                        block_lines = []
-                        for l in remaining_lines:
-                            if not in_block:
-                                if not l.strip():
-                                    continue
-                                if l.lstrip().startswith("###"):
-                                    in_block = True
-                                    block_lines = []
-                                    continue
-                                if l.lstrip().startswith("#"):
-                                    continue
-                                usage_items.append({"type": "cmd", "text": l.strip()})
-                            else:
-                                if l.lstrip().startswith("###"):
-                                    in_block = False
-                                    usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
-                                    block_lines = []
-                                    continue
-                                block_lines.append(l)
-
-                        if in_block:
-                            usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
-                except:
-                    desc = "读取描述失败"
+                desc, usage_items = parse_usage_file(usage_path)
 
             # 添加文件节点
             current_node[file] = {
@@ -189,7 +222,9 @@ def build_tool_tree():
                 "__name__": file,
                 "desc": desc,
                 "usage_items": usage_items,
-                "full_path": os.path.join(rel_path, file).replace("\\", "/")  # 统一路径分隔符
+                "full_path": os.path.join(rel_path, file).replace("\\", "/"),  # 统一路径分隔符
+                "abs_path": os.path.abspath(os.path.join(root, file)).replace("\\", "/"),
+                "abs_dir": os.path.abspath(root).replace("\\", "/")
             }
 
     return tool_tree

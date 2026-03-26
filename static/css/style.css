@@ -53,10 +53,19 @@ body {
     gap: 15px; /* 从20px改为15px，适配新增的版本/作者 */
     align-items: center;
 }
-/* 自定义版本/作者样式（可选） */
-.info-item:first-child .info-value {
-    color: #3498db; /* 改为和标题同色的蓝色 */
-    font-weight: 600; /* 加粗 */
+
+.info-version-lines {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+    font-size: 0.75rem;
+    color: #3498db;
+    font-weight: 600;
+    text-align: left;
+}
+
+.info-version-line {
+    white-space: nowrap;
 }
 
 .info-item {
@@ -80,6 +89,16 @@ body {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.copy-tip {
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #f39c12;
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 .ip-panel {
@@ -118,9 +137,7 @@ body {
 }
 
 .tip {
-    font-size: 0.75rem;
-    color: #bdc3c7;
-    margin: 0;
+    display: none;
 }
 
 /* 工具区域样式 */
@@ -228,6 +245,51 @@ body {
     display: block;
 }
 
+.readme-node {
+    border: 1px solid #e0e0e0;
+    background-color: #ffffff;
+}
+
+.readme-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: #fff7e6;
+    cursor: pointer;
+    margin-bottom: 6px;
+}
+
+.readme-title {
+    font-weight: 700;
+    color: #d35400;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.readme-toggle {
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    border: 1px solid #f0c27b;
+    border-radius: 999px;
+    background: #fff;
+    color: #d35400;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.readme-body {
+    padding: 0 0 2px 0;
+}
+
+.readme-collapsed .readme-body {
+    display: none;
+}
+
 /* 文件节点 */
 .file-node {
     margin: 2px 0;
@@ -236,12 +298,54 @@ body {
     background-color: #f8f9fa;
 }
 
+.file-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.file-header-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.file-header-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.file-arrow {
+    color: #3498db;
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+    display: inline-block;
+    width: 12px;
+}
+
+.file-node:not(.file-collapsed) .file-arrow {
+    transform: rotate(90deg);
+}
+
 .file-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     margin-bottom: 4px;
+}
+
+.file-body {
+    margin-top: 4px;
+}
+
+.file-collapsed .file-body {
+    display: none;
 }
 
 .file-name {
@@ -287,6 +391,13 @@ body {
     font-size: 0.85rem;
     border: 1px solid #00aa44;
     transition: background-color 0.2s;
+}
+
+.cmd-hint {
+    color: #7f8c8d;
+    font-size: 0.78rem;
+    margin: 2px 2px 4px 2px;
+    line-height: 1.2;
 }
 
 .cmd.download-link {

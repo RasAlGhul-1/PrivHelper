@@ -1,3 +1,3 @@
 x32-官方地址：https://github.com/peass-ng/PEASS-ng/releases/download/20260315-d7c1e6ce/
-#cd /tmp && wget $badurl/linux/bin/linpeas_linux_386 && chmod +x linpeas_linux_386 && ./linpeas_linux_386
+>wget下载到tmp目录在执行
 cd /tmp && wget $downloadurl && chmod +x linpeas_linux_386 && ./linpeas_linux_386
