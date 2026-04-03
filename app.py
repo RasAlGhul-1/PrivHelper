@@ -7,6 +7,9 @@ import argparse
 import sys
 import json
 import socket
+import shutil
+import subprocess
+import time
 
 # ===================== 工具函数 =====================
 def get_ip_address(ifname="tun0"):
@@ -50,6 +53,63 @@ def find_available_port(start_port, host="0.0.0.0"):
             except socket.error:
                 port += 1
     return start_port
+
+def parse_usage_file(file_path):
+    desc = ""
+    usage_items = []
+    try:
+        with open(file_path, encoding="utf-8") as uf:
+            raw_lines = [l.rstrip("\n").rstrip("\r") for l in uf]
+            first_content_index = None
+            for i, l in enumerate(raw_lines):
+                if l.strip():
+                    first_content_index = i
+                    break
+
+            if first_content_index is not None:
+                desc = raw_lines[first_content_index].strip()
+                remaining_lines = raw_lines[first_content_index + 1:]
+            else:
+                remaining_lines = []
+
+            in_block = False
+            block_lines = []
+            pending_hint = None
+            for l in remaining_lines:
+                if not in_block:
+                    if not l.strip():
+                        continue
+                    stripped = l.strip()
+                    if stripped.startswith(">"):
+                        hint = stripped[1:].lstrip()
+                        pending_hint = hint if hint else None
+                        continue
+                    if l.lstrip().startswith("###"):
+                        pending_hint = None
+                        in_block = True
+                        block_lines = []
+                        continue
+                    if l.lstrip().startswith("#"):
+                        continue
+                    if pending_hint:
+                        usage_items.append({"type": "cmd", "text": l.strip(), "hint": pending_hint})
+                        pending_hint = None
+                    else:
+                        usage_items.append({"type": "cmd", "text": l.strip()})
+                else:
+                    if l.lstrip().startswith("###"):
+                        in_block = False
+                        usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
+                        block_lines = []
+                        continue
+                    block_lines.append(l)
+
+            if in_block:
+                usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
+    except:
+        desc = "读取描述失败"
+        usage_items = []
+    return desc, usage_items
 
 # ===================== 配置 =====================
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -135,6 +195,21 @@ def build_tool_tree():
                 }
             current_node = current_node[part]["__children__"]
 
+        readme_usage_path = os.path.join(root, "readme.usage")
+        if not os.path.exists(readme_usage_path):
+            readme_usage_path = os.path.join(root, "README.usage")
+
+        if os.path.exists(readme_usage_path):
+            desc, usage_items = parse_usage_file(readme_usage_path)
+            current_node["__readme__"] = {
+                "__type__": "readme",
+                "__name__": "README",
+                "desc": desc,
+                "usage_items": usage_items,
+                "dir_path": rel_path.replace("\\", "/"),
+                "abs_dir": os.path.abspath(root).replace("\\", "/")
+            }
+
         # 添加文件到当前目录节点
         for file in files:
             # 读取.usage文件
@@ -142,46 +217,7 @@ def build_tool_tree():
             desc = ""
             usage_items = []
             if os.path.exists(usage_path):
-                try:
-                    with open(usage_path, encoding="utf-8") as uf:
-                        raw_lines = [l.rstrip("\n").rstrip("\r") for l in uf]
-                        first_content_index = None
-                        for i, l in enumerate(raw_lines):
-                            if l.strip():
-                                first_content_index = i
-                                break
-
-                        if first_content_index is not None:
-                            desc = raw_lines[first_content_index].strip()
-                            remaining_lines = raw_lines[first_content_index + 1:]
-                        else:
-                            remaining_lines = []
-
-                        in_block = False
-                        block_lines = []
-                        for l in remaining_lines:
-                            if not in_block:
-                                if not l.strip():
-                                    continue
-                                if l.lstrip().startswith("###"):
-                                    in_block = True
-                                    block_lines = []
-                                    continue
-                                if l.lstrip().startswith("#"):
-                                    continue
-                                usage_items.append({"type": "cmd", "text": l.strip()})
-                            else:
-                                if l.lstrip().startswith("###"):
-                                    in_block = False
-                                    usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
-                                    block_lines = []
-                                    continue
-                                block_lines.append(l)
-
-                        if in_block:
-                            usage_items.append({"type": "comment_block", "text": "\n".join(block_lines).rstrip()})
-                except:
-                    desc = "读取描述失败"
+                desc, usage_items = parse_usage_file(usage_path)
 
             # 添加文件节点
             current_node[file] = {
@@ -189,7 +225,9 @@ def build_tool_tree():
                 "__name__": file,
                 "desc": desc,
                 "usage_items": usage_items,
-                "full_path": os.path.join(rel_path, file).replace("\\", "/")  # 统一路径分隔符
+                "full_path": os.path.join(rel_path, file).replace("\\", "/"),  # 统一路径分隔符
+                "abs_path": os.path.abspath(os.path.join(root, file)).replace("\\", "/"),
+                "abs_dir": os.path.abspath(root).replace("\\", "/")
             }
 
     return tool_tree
@@ -227,6 +265,85 @@ def start_http_server():
         print(f"\n[-] HTTP 服务器启动失败：{str(e)}")
         sys.exit(1)
 
+def try_start_updog():
+    """
+    尝试启动 updog；若不可用或启动失败则返回 False
+    """
+    candidates = [
+        # 直接 updog
+        (["updog"], ["updog", "--version"]),
+        # pipx run updog
+        (["pipx", "run", "updog"], ["pipx", "run", "updog", "--version"]),
+        # python -m updog
+        ([sys.executable, "-m", "updog"], [sys.executable, "-c", "import updog"]),
+    ]
+
+    for start_cmd, check_cmd in candidates:
+        # 检测命令可用性
+        try:
+            res = subprocess.run(
+                check_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=5,
+                cwd=BASE_DIR,
+            )
+            if res.returncode != 0:
+                continue
+        except Exception:
+            continue
+
+        # 启动 updog
+        try:
+            # 兼容 updog CLI：使用 -p/-d，移除不支持的 --host/--upload
+            args = start_cmd + ["-p", str(HTTP_SERVER_PORT), "-d", TOOLS_DIR]
+            proc = subprocess.Popen(
+                args,
+                cwd=BASE_DIR,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                bufsize=1,
+            )
+            # 等待片刻，检查是否立即退出
+            time.sleep(1.0)
+            if proc.poll() is None:
+                print(f"[+] Updog 文件服务器启动：{HTTP_SERVER_HOST}:{HTTP_SERVER_PORT}")
+                app.config["FILE_SERVER"] = "updog"
+                app.config["UPDOG_PROC"] = proc
+                # 将 updog 的输出写入日志文件，供前端读取
+                def _pipe_to_log(stream, prefix="UPDOG"):
+                    try:
+                        for line in stream:
+                            line = (line or "").rstrip("\n").rstrip("\r")
+                            if not line:
+                                continue
+                            ts = time.strftime("%Y-%m-%d %H:%M:%S")
+                            try:
+                                with open(HTTP_SERVER_LOG, "a", encoding="utf-8") as f:
+                                    f.write(f"{ts} [{prefix}] {line}\n")
+                            except Exception:
+                                pass
+                    except Exception:
+                        pass
+                threading.Thread(target=_pipe_to_log, args=(proc.stdout, "UPDOG"), daemon=True).start()
+                threading.Thread(target=_pipe_to_log, args=(proc.stderr, "UPDOG-ERR"), daemon=True).start()
+                return True
+            else:
+                try:
+                    err = proc.stderr.read().decode("utf-8", errors="ignore")
+                except Exception:
+                    err = ""
+                print(f"[*] Updog 进程退出，回退到内置HTTP：{err.strip()}")
+        except Exception as e:
+            print(f"[*] Updog 启动失败，回退到内置HTTP：{e}")
+    return False
+
+def start_file_server():
+    if not try_start_updog():
+        app.config["FILE_SERVER"] = "builtin"
+        start_http_server()
+
 # ===================== 接口 =====================
 @app.route("/")
 def index():
@@ -249,8 +366,7 @@ def get_logs():
 
 # ===================== 启动 =====================
 if __name__ == "__main__":
-    # 启动HTTP服务器（后台线程）
-    http_thread = threading.Thread(target=start_http_server, daemon=True)
+    http_thread = threading.Thread(target=start_file_server, daemon=True)
     http_thread.start()
 
     # 启动Flask Web服务

