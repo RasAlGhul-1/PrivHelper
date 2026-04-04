@@ -1,0 +1,11 @@
+项目地址：https://github.com/diego-treitos/linux-smart-enumeration/releases/tag/4.14nw
+>有curl的情况下，文件不落地
+curl $downloadurl | bash
+>没有curl就用wget下载到tmp目录
+cd /tmp && wget $downloadurl && chmod +x $badfileh
+>默认为l0，只输出非常关键的信息
+./$badfile
+>l1，会输出有价值的线索
+./$badfile l1
+>l2，全量输出，不建议
+./$badfile l2

