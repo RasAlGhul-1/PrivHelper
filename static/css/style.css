@@ -160,45 +160,94 @@ body {
     max-height: calc(100vh - 60px - 180px - 20px);
     overflow-y: auto;
     flex: 0 1 auto;
+    display: flex;
+    flex-direction: column;
 }
 
-/* 工具列布局 - 新增分割线+边框 */
-.cols {
+/* 标签页样式 */
+.tabs {
     display: flex;
-    gap: 15px; /* 列间距保留，增强分割感 */
-    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e0e0e0;
 }
-.col {
-    flex: 1;
-    min-width: 280px;
-    /* 新增：独立边框 */
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 10px; /* 内部间距，避免内容贴边框 */
-    background-color: #fff; /* 独立背景，增强区分 */
-    /* 新增：右侧分割线（最后一列不加） */
+
+.tab-btn {
+    padding: 6px 16px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px 4px 0 0;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #495057;
+    transition: all 0.2s;
     position: relative;
+    bottom: -1px;
 }
-/* 给前两列添加右侧垂直分割线（Windows/Linux列右侧） */
-.col:not(:last-child)::after {
-    content: "";
-    position: absolute;
-    right: -8px; /* 居中于列间距（15px），-8px = -15px/2 + 0.5px */
-    top: 20px;
-    bottom: 20px;
-    width: 1px;
-    background-color: #e0e0e0; /* 浅灰色分割线，不刺眼 */
+
+.tab-btn:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
 }
-/* 列标题样式微调（适配边框） */
-.col h2 {
-    color: #2c3e50;
-    margin-bottom: 8px;
-    font-size: 1.1rem;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 4px;
-    /* 新增：标题和边框间距 */
-    margin-left: 5px;
-    margin-right: 5px;
+
+.tab-btn.active {
+    background-color: #fff;
+    border-color: #3498db #dee2e6 transparent;
+    color: #3498db;
+    font-weight: 600;
+}
+
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.tab-layout {
+    display: flex;
+    gap: 15px;
+    height: 100%;
+}
+
+.tab-left {
+    flex: 2;
+    overflow-y: auto;
+}
+
+.tab-right {
+    flex: 1;
+    overflow-y: auto;
+    border-left: 1px solid #e0e0e0;
+    padding-left: 15px;
+}
+
+.readme-panel {
+    font-size: 0.9rem;
+}
+
+.reset-btn {
+    padding: 4px 10px;
+    background-color: #e74c3c;
+    color: #fff;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: background-color 0.2s;
+}
+
+.reset-btn:hover {
+    background-color: #c0392b;
 }
 
 /* 文件夹树核心样式 */

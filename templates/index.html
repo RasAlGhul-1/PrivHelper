@@ -31,6 +31,7 @@
         <div class="header-right">
             <a class="upload-link" href="http://{{config.BAD_IP}}:{{config.HTTP_SERVER_PORT}}/" target="_blank">打开上传页面</a>
             <div class="copy-tip">点击命令即可复制</div>
+            <button onclick="resetAll()" class="reset-btn">🔄 重置</button>
             <div class="ip-panel">
                 <label class="ip-label">自定义BADIP：</label>
                 <input type="text" id="server-ip" value="{{config.BAD_IP}}" class="ip-input">
@@ -43,22 +44,52 @@
                 <input type="text" id="callback-port" value="" placeholder="4444" class="ip-input" style="width:80px">
                 <button onclick="updateCallback()" class="ip-btn">更新</button>
             </div>
+            <div class="ip-panel" style="margin-left:8px">
+                <label class="ip-label">Win目录：</label>
+                <input type="text" id="win-download-dir" value="C:\windows\tasks" class="ip-input" style="width:160px">
+                <label class="ip-label" style="margin-left:6px">Linux目录：</label>
+                <input type="text" id="linux-download-dir" value="/tmp" class="ip-input" style="width:120px">
+                <button onclick="updateDownloadDirs()" class="ip-btn">更新</button>
+            </div>
         </div>
     </header>
 
     <div class="tool-scroll">
-        <div class="cols">
-            <div class="col">
-                <h2>🪟 Windows</h2>
-                <div id="windows-tools" class="file-tree"></div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('windows')">🪟 Windows</button>
+            <button class="tab-btn" onclick="switchTab('linux')">🐧 Linux</button>
+            <button class="tab-btn" onclick="switchTab('other')">📁 其他</button>
+        </div>
+        <div class="tab-content">
+            <div id="tab-windows" class="tab-pane active">
+                <div class="tab-layout">
+                    <div class="tab-left">
+                        <div id="windows-tools" class="file-tree"></div>
+                    </div>
+                    <div class="tab-right">
+                        <div id="windows-readme" class="readme-panel"></div>
+                    </div>
+                </div>
             </div>
-            <div class="col">
-                <h2>🐧 Linux</h2>
-                <div id="linux-tools" class="file-tree"></div>
+            <div id="tab-linux" class="tab-pane">
+                <div class="tab-layout">
+                    <div class="tab-left">
+                        <div id="linux-tools" class="file-tree"></div>
+                    </div>
+                    <div class="tab-right">
+                        <div id="linux-readme" class="readme-panel"></div>
+                    </div>
+                </div>
             </div>
-            <div class="col">
-                <h2>📁 其他</h2>
-                <div id="other-tools" class="file-tree"></div>
+            <div id="tab-other" class="tab-pane">
+                <div class="tab-layout">
+                    <div class="tab-left">
+                        <div id="other-tools" class="file-tree"></div>
+                    </div>
+                    <div class="tab-right">
+                        <div id="other-readme" class="readme-panel"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -37,6 +37,53 @@ function updateIP() {
 }
 
 /**
+ * 更新下载目录配置
+ */
+function updateDownloadDirs() {
+    const winDirInput = document.getElementById("win-download-dir");
+    const linuxDirInput = document.getElementById("linux-download-dir");
+    const httpPortEl = document.querySelector('.header-middle .info-item:last-child .info-value');
+    const httpPort = httpPortEl ? httpPortEl.innerText : CONFIG.httpPort || 8080;
+
+    let winDir = winDirInput ? winDirInput.value.trim() : "C:\\windows\\tasks";
+    let linuxDir = linuxDirInput ? linuxDirInput.value.trim() : "/tmp";
+
+    if (!winDir) winDir = "C:\\windows\\tasks";
+    if (!linuxDir) linuxDir = "/tmp";
+
+    if (winDirInput) winDirInput.value = winDir;
+    if (linuxDirInput) linuxDirInput.value = linuxDir;
+
+    window.currentWinDownloadDir = winDir;
+    window.currentLinuxDownloadDir = linuxDir;
+    localStorage.setItem("privhelper_win_download_dir", winDir);
+    localStorage.setItem("privhelper_linux_download_dir", linuxDir);
+
+    loadTools(httpPort);
+}
+
+/**
+ * 切换标签页
+ */
+function switchTab(tabName) {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabPanes = document.querySelectorAll('.tab-pane');
+
+    tabBtns.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    tabPanes.forEach(pane => {
+        pane.classList.remove('active');
+    });
+
+    const activeBtn = document.querySelector(`.tab-btn[onclick="switchTab('${tabName}')"]`);
+    const activePane = document.getElementById(`tab-${tabName}`);
+    
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activePane) activePane.classList.add('active');
+}
+
+/**
  * 更新回连参数（callback_ip / callback_port）
  * 默认：callback_ip 使用当前 BADIP（仅在用户未设置时）
  */
@@ -82,6 +129,17 @@ async function loadAll() {
     const cportEl = document.getElementById("callback-port");
     if (cipEl && !cipEl.value) cipEl.value = window.currentCallbackIp;
     if (cportEl && !cportEl.value) cportEl.value = window.currentCallbackPort;
+    
+    // 初始化下载目录配置
+    const savedWinDir = localStorage.getItem("privhelper_win_download_dir");
+    const savedLinuxDir = localStorage.getItem("privhelper_linux_download_dir");
+    window.currentWinDownloadDir = savedWinDir || "C:\\windows\\tasks";
+    window.currentLinuxDownloadDir = savedLinuxDir || "/tmp";
+    const winDirEl = document.getElementById("win-download-dir");
+    const linuxDirEl = document.getElementById("linux-download-dir");
+    if (winDirEl) winDirEl.value = window.currentWinDownloadDir;
+    if (linuxDirEl) linuxDirEl.value = window.currentLinuxDownloadDir;
+    
     loadTools(initHttpPort);
     loadLogs();
 }
@@ -147,15 +205,15 @@ function getFileExpandedState(category, fullPath) {
 /**
  * 递归渲染文件夹树（接收最新HTTP端口）
  */
-function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
+function renderTreeNode(node, parentEl, readmeEl, category, parentPath = "", httpPort) {
     if (!node) return;
 
     if (node.__type__ === "readme") {
         const dirPath = parentPath || "";
         const isExpanded = getReadmeExpandedState(category, dirPath);
 
-        const readmeEl = document.createElement("div");
-        readmeEl.className = `readme-node file-node${isExpanded ? "" : " readme-collapsed"}`;
+        const readmeNode = document.createElement("div");
+        readmeNode.className = `readme-node file-node${isExpanded ? "" : " readme-collapsed"}`;
 
         const headerEl = document.createElement("div");
         headerEl.className = "readme-header";
@@ -177,6 +235,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
         const badUrlBase = `http://${currentBadIp || "127.0.0.1"}:${httpPort || 8080}`;
         const callbackIp = window.currentCallbackIp || currentBadIp || "127.0.0.1";
         const callbackPort = window.currentCallbackPort || "4444";
+        const winDownloadDir = window.currentWinDownloadDir || "C:\\windows\\tasks";
+        const linuxDownloadDir = window.currentLinuxDownloadDir || "/tmp";
         const toolDir = node.abs_dir || "";
         const toolFile = "";
 
@@ -194,6 +254,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 replacedCmd = replacedCmd.replace(/\$callback_ip/g, callbackIp);
                 replacedCmd = replacedCmd.replace(/\$callback_port/g, callbackPort);
                 replacedCmd = replacedCmd.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                replacedCmd = replacedCmd.replace(/\$win_download_dir/g, winDownloadDir);
+                replacedCmd = replacedCmd.replace(/\$linux_download_dir/g, linuxDownloadDir);
                 if (item.hint) {
                     let hintText = String(item.hint).replace(/\$badurl/g, badUrlBase);
                     hintText = hintText.replace(/\$toolpath/g, toolDir);
@@ -201,6 +263,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                     hintText = hintText.replace(/\$callback_ip/g, callbackIp);
                     hintText = hintText.replace(/\$callback_port/g, callbackPort);
                     hintText = hintText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                    hintText = hintText.replace(/\$win_download_dir/g, winDownloadDir);
+                    hintText = hintText.replace(/\$linux_download_dir/g, linuxDownloadDir);
                     cmdHtml += `<div class='cmd-hint'>${escapeHtml(hintText)}</div>`;
                 }
                 cmdHtml += `<div class='cmd' onclick='copy(this)'>${replacedCmd}</div>`;
@@ -208,13 +272,7 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
             }
 
             if (item.type === "comment_block" && item.text) {
-                let commentText = String(item.text);
-                commentText = commentText.replace(/\$badurl/g, badUrlBase);
-                commentText = commentText.replace(/\$toolpath/g, toolDir);
-                commentText = commentText.replace(/\$toolfile/g, toolFile);
-                commentText = commentText.replace(/\$callback_ip/g, callbackIp);
-                commentText = commentText.replace(/\$callback_port/g, callbackPort);
-                commentText = commentText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                const commentText = String(item.text);
                 const safeText = commentText
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
@@ -240,19 +298,19 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
         `;
 
         const setExpanded = (expanded) => {
-            readmeEl.classList.toggle("readme-collapsed", !expanded);
+            readmeNode.classList.toggle("readme-collapsed", !expanded);
             toggleEl.textContent = expanded ? "收起" : "展开";
             saveReadmeExpandedState(category, dirPath, expanded);
         };
 
         headerEl.addEventListener("click", () => {
-            const expanded = readmeEl.classList.contains("readme-collapsed");
+            const expanded = readmeNode.classList.contains("readme-collapsed");
             setExpanded(expanded);
         });
 
-        readmeEl.appendChild(headerEl);
-        readmeEl.appendChild(bodyEl);
-        parentEl.appendChild(readmeEl);
+        readmeNode.appendChild(headerEl);
+        readmeNode.appendChild(bodyEl);
+        readmeEl.appendChild(readmeNode);
         return;
     }
 
@@ -296,7 +354,7 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 return aw - bw;
             });
             children.forEach(child => {
-                renderTreeNode(child, dirChildren, category, currentPath, httpPort);
+                renderTreeNode(child, dirChildren, readmeEl, category, currentPath, httpPort);
             });
         }
         
@@ -316,6 +374,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
         const toolFile = node.abs_path || "";
         const callbackIp = window.currentCallbackIp || currentBadIp || "127.0.0.1";
         const callbackPort = window.currentCallbackPort || "4444";
+        const winDownloadDir = window.currentWinDownloadDir || "C:\\windows\\tasks";
+        const linuxDownloadDir = window.currentLinuxDownloadDir || "/tmp";
         const isExpanded = getFileExpandedState(category, node.full_path);
         fileEl.classList.toggle("file-collapsed", !isExpanded);
         
@@ -340,6 +400,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 replacedCmd = replacedCmd.replace(/\$callback_ip/g, callbackIp);
                 replacedCmd = replacedCmd.replace(/\$callback_port/g, callbackPort);
                 replacedCmd = replacedCmd.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                replacedCmd = replacedCmd.replace(/\$win_download_dir/g, winDownloadDir);
+                replacedCmd = replacedCmd.replace(/\$linux_download_dir/g, linuxDownloadDir);
                 cmdHtml += `<div class='cmd' onclick='copy(this)'>${replacedCmd}</div>`;
                 return;
             }
@@ -354,6 +416,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                 replacedCmd = replacedCmd.replace(/\$callback_ip/g, callbackIp);
                 replacedCmd = replacedCmd.replace(/\$callback_port/g, callbackPort);
                 replacedCmd = replacedCmd.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                replacedCmd = replacedCmd.replace(/\$win_download_dir/g, winDownloadDir);
+                replacedCmd = replacedCmd.replace(/\$linux_download_dir/g, linuxDownloadDir);
                 if (item.hint) {
                     let hintText = String(item.hint).replace(/\$badurl/g, badUrlBase);
                     hintText = hintText.replace(/\$downloadurl/g, downloadUrl);
@@ -364,6 +428,8 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
                     hintText = hintText.replace(/\$callback_ip/g, callbackIp);
                     hintText = hintText.replace(/\$callback_port/g, callbackPort);
                     hintText = hintText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                    hintText = hintText.replace(/\$win_download_dir/g, winDownloadDir);
+                    hintText = hintText.replace(/\$linux_download_dir/g, linuxDownloadDir);
                     cmdHtml += `<div class='cmd-hint'>${escapeHtml(hintText)}</div>`;
                 }
                 cmdHtml += `<div class='cmd' onclick='copy(this)'>${replacedCmd}</div>`;
@@ -371,16 +437,7 @@ function renderTreeNode(node, parentEl, category, parentPath = "", httpPort) {
             }
 
             if (item.type === "comment_block" && item.text) {
-                let commentText = String(item.text);
-                commentText = commentText.replace(/\$badurl/g, badUrlBase);
-                commentText = commentText.replace(/\$downloadurl/g, downloadUrl);
-                commentText = commentText.replace(/\$badfile/g, badFile);
-                commentText = commentText.replace(/\$file/g, badFile);
-                commentText = commentText.replace(/\$toolpath/g, toolDir);
-                commentText = commentText.replace(/\$toolfile/g, toolFile);
-                commentText = commentText.replace(/\$callback_ip/g, callbackIp);
-                commentText = commentText.replace(/\$callback_port/g, callbackPort);
-                commentText = commentText.replace(/\$badip/g, currentBadIp || "127.0.0.1");
+                const commentText = String(item.text);
                 const safeText = commentText
                     .replace(/&/g, "&amp;")
                     .replace(/</g, "&lt;")
@@ -446,9 +503,17 @@ async function loadTools(httpPort) {
         const linuxTree = document.getElementById("linux-tools");
         const otherTree = document.getElementById("other-tools");
         
+        const windowsReadme = document.getElementById("windows-readme");
+        const linuxReadme = document.getElementById("linux-readme");
+        const otherReadme = document.getElementById("other-readme");
+        
         if (windowsTree) windowsTree.innerHTML = "";
         if (linuxTree) linuxTree.innerHTML = "";
         if (otherTree) otherTree.innerHTML = "";
+        
+        if (windowsReadme) windowsReadme.innerHTML = "";
+        if (linuxReadme) linuxReadme.innerHTML = "";
+        if (otherReadme) otherReadme.innerHTML = "";
 
         const weight = (n) => {
             if (!n || !n.__type__) return 9;
@@ -457,23 +522,23 @@ async function loadTools(httpPort) {
             if (n.__type__ === "file") return 2;
             return 9;
         };
-        const renderRootChildren = (catNode, container, category) => {
+        const renderRootChildren = (catNode, container, readmeContainer, category) => {
             const arr = Object.values(catNode.__children__ || {});
             arr.sort((a, b) => weight(a) - weight(b));
             arr.forEach(child => {
-                renderTreeNode(child, container, category, "", httpPort);
+                renderTreeNode(child, container, readmeContainer, category, "", httpPort);
             });
         };
 
         // 传递最新HTTP端口到渲染函数
         if (toolData.windows?.__children__) {
-            renderRootChildren(toolData.windows, windowsTree, "windows");
+            renderRootChildren(toolData.windows, windowsTree, windowsReadme, "windows");
         }
         if (toolData.linux?.__children__) {
-            renderRootChildren(toolData.linux, linuxTree, "linux");
+            renderRootChildren(toolData.linux, linuxTree, linuxReadme, "linux");
         }
         if (toolData.other?.__children__) {
-            renderRootChildren(toolData.other, otherTree, "other");
+            renderRootChildren(toolData.other, otherTree, otherReadme, "other");
         }
 
     } catch (e) {
@@ -577,4 +642,33 @@ function resetDirStates() {
     const httpPort = httpPortEl ? httpPortEl.innerText : 8080;
     loadTools(httpPort);
     alert("文件夹状态已重置！");
+}
+
+/**
+ * 一键重置所有配置
+ */
+function resetAll() {
+    if (!confirm("确定要重置所有配置吗？这将清空所有持久化数据，恢复到默认状态。")) {
+        return;
+    }
+    
+    localStorage.clear();
+    
+    currentBadIp = CONFIG.badIp;
+    window.currentCallbackIp = CONFIG.badIp;
+    window.currentCallbackPort = "4444";
+    window.currentWinDownloadDir = "C:\\windows\\tasks";
+    window.currentLinuxDownloadDir = "/tmp";
+    
+    document.getElementById("server-ip").value = CONFIG.badIp;
+    document.getElementById("callback-ip").value = CONFIG.badIp;
+    document.getElementById("callback-port").value = "4444";
+    document.getElementById("win-download-dir").value = "C:\\windows\\tasks";
+    document.getElementById("linux-download-dir").value = "/tmp";
+    
+    const httpPortEl = document.querySelector('.header-middle .info-item:last-child .info-value');
+    const httpPort = httpPortEl ? httpPortEl.innerText : CONFIG.httpPort || 8080;
+    
+    loadTools(httpPort);
+    alert("所有配置已重置！");
 }
