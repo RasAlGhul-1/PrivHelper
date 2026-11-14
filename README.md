@@ -362,3 +362,13 @@ v1.1.0版本-增加了updog，将原有使用的http.server改为先尝试使用
 - 禁止用于任何未授权的入侵、破坏、数据窃取或其他违法行为
 - 使用本项目产生的任何直接或间接后果由使用者自行承担
 - 作者不对任何滥用行为负责，也不提供针对非法用途的支持
+
+# Star History
+
+<a href="https://www.star-history.com/?repos=rasalghul-1%2Fprivhelper&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=rasalghul-1/privhelper&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=rasalghul-1/privhelper&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=rasalghul-1/privhelper&type=date&legend=top-left" />
+ </picture>
+</a>
